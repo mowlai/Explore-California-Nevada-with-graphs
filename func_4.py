@@ -1,71 +1,9 @@
 import networkx as nx
-import header as h
-import utils as u
 import matplotlib.pyplot as plt
+import header as h
 import pandas as pd
-import sys
-
-def myDijkstra(g, source, dest):
-    '''
-    Implementation of the Dijkstra algo for the shortest path in a graph
-    inputs: 
-        g: the graph in the form (dict): {n : { adjOfn : weight_n_to_adjOfn } }
-        source: the source node
-        dest: the destination node
-    outputs:
-        pred: the father's vector
-        d: the distance list
-        pathRevers: the dijkstra path
-        d[dest]: the weight of the path
-    '''
-    nodi=[0]+list(g.keys())#obtain the nodes in the graph
-    l=[source]#list of node we need to visit, start from the source
-    s=[]#list of nodes visited
-    d=[float('inf') for i in nodi]#the inizial (unknown) distanse set to infinity
-    d[source]=0#distance of the sourse from itself
-    pred=nodi.copy()#list of fathers
-    
-
-    while l!=[]:#till we haven't visited all nodes
-
-        #loking for the el in l with minumun distance in d
-        minDist=d[l[0]]
-        i=l[0]
-        for el in l[1:]:
-            if d[el]<minDist:
-                minDist=d[el]
-                i=el
-        #we have found the node with minimum distance 
-        current=i#visiting...
-        l.remove(i)#...
-        s.append(current)#...
-        adj=g[current]#adjacent
-        for neighbour in adj:
-            cumul=d[current]+g[current][neighbour]#calculate the cumulative distance
-            if cumul<d[neighbour]:
-                d[neighbour]=cumul#update the minimum distance for the neigbour from the current
-                pred[neighbour]=current #update the father of the current
-                if neighbour not in l:
-                    l.append(neighbour)#we need to visit it
-
-    # We had created the father's vector and the permanent distance vector
-    if d[dest]==float('inf'):#if there isn't a path from the source to the destination
-        print('Ther isn\'t a path from {} to {}'.format(source, dest))
-        return pred, d, float('inf'), float('inf')
-    else:
-        #reation of the reverse path from the destination to the source based on the father's vector
-        pathRevers=[dest]
-        father=pred[dest]
-        while father!=source:#since finde the source
-            pathRevers.append(father)
-            father=pred[father]
-        pathRevers.append(source)#add the source
-        pathRevers.reverse()#and reverse the list to obtain the path from the source to the destination
-
-        return pred, d, pathRevers, d[dest]
-        
-def giveMyG(n):
-    return nx.complete_graph(n)
+from dijkstra import dijkstra
+import folium
 
 def myNearestNeighbour(clique, s, e, nodes):
     '''
@@ -115,9 +53,24 @@ def getEdgesLabels(g):
             labels[(k, adj)]=weight
     return labels
 
-def visualize(gf4, nv, wv):
+def visualize2(pos, start):
+    
+    m = folium.Map(location = (pos[start][1]/1000000, 
+                           pos[start][0]/1000000), zoom_start = 13, tiles = 'openstreetmap')
+    locations=[]
+    for node in list(pos.keys()):
+        folium.CircleMarker(location = (pos[node][1]/1000000, 
+                                        pos[node][0]/1000000), radius = 3, line_color = '#3186cc', fill_color = '#FFFFFF', fill_opacity = 0.7, fill = True).add_to(m)
+        
+        locations.append((pos[node][1]/1000000, pos[node][0]/1000000))
+    folium.PolyLine(locations).add_to(m)
+    #display(m)
+    m.save('index.html')
 
-    pos=getPositions()
+
+def visualize(gf4, nv, wv):
+    
+    pos=getPositions(list(gf4.keys()))
 
     
 
@@ -143,44 +96,51 @@ def visualize(gf4, nv, wv):
     fig.set_facecolor("#00000F")
     plt.show()
 
-def getPositions():
+def getPositions(nodes):
     '''
     Returns the dictionary of the position for each nodes; needs to visualizations task
     outputs:
         pos: dictionary of the positions
     '''
     pos=dict()
-    with open(h.PATH_INFO, 'r') as info:
-        for row in info:
-            row=row[2:]#remove the inizial 'v'
-            comp=list(map(int, row.split()))
-            pos[comp[0]]=[comp[1], comp[2]]
+    for node in nodes:
+        pos[node]=[coordinates["Longitude"][node-1], coordinates["Latitude"][node-1]]
+    #print(pos)
     return pos
+    
 
 def printNodes():
     nodes=pd.read_csv(h.PATH_INFO, sep=' ', names=['a', 'node', 'lat', 'lon'], delimiter=None, index_col=None, usecols=None)
     nodes.plot(kind='scatter', x='lon', y='lat')
 
-def functionality_4(nv, wv):
-    '''
-    Implementation of the functionality 4 
-    inputs:
-        nv: node visualization (boolean) if true, visulize the name of the node
-        wv: weight visualization (boolean) if true, visualize the weight on the edge
-    outputs:
-        shortRoute: the 'shortest' route from the source to the list of node in input'
-    '''
+def functionality_4():
+    dataframes_names = ['coordinates', 'physical_dist', 'time_dist']
 
-    #to delete 
-    '''
-    g={1:{6:1, 2:5, 7:1}, 2:{3:6, 5:1, 7:1}, 3:{4:7}, 4:{3:8, 5:9}, 5:{6:10, 3:1}, 6:{2:1}, 7:{8:1}, 8:{9:1}, 9:{10:1, 11:1, 13:1}, 10:{11:1}, 11:{12:1}, 12:{13:1}, 13:{}}
 
-    gd=nx.DiGraph(g)
-    nx.draw_planar(gd, with_labels=True)
-    print('drawed')
-    plt.title('iniziale')
-    plt.show()
-    '''
+    globals()[dataframes_names[0]] = pd.read_csv(h.PATH_INFO, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "ID_Node", "Longitude", "Latitude"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
+
+    eval(dataframes_names[0]).drop(columns = ["Character"], inplace = True)
+
+    globals()[dataframes_names[1]] = pd.read_csv(h.PATH_DISTANCE, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "Node_1", "Node_2", "Physical_distance"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
+
+    eval(dataframes_names[1]).drop(columns = ["Character"], inplace = True)
+
+    globals()[dataframes_names[2]] = pd.read_csv(h.PATH_TIME, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "Node_1", "Node_2", "Time_distance"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
+    eval(dataframes_names[2]).drop(columns = ["Character"], inplace = True)
+
+    #print(globals())
+    #physical_dist=globals()['physical_dist']
+    #time_dist=globals()['time_dist']
+    #coordinates=globals()['coordinates']
+    complete = pd.merge(physical_dist, time_dist, on = ['Node_1', 'Node_2'])
+
+    G = nx.from_pandas_edgelist(complete, 'Node_1', 'Node_2', ['Physical_distance', 'Time_distance'], create_using = nx.DiGraph())
 
     #imputs
     ok=False
@@ -188,54 +148,37 @@ def functionality_4(nv, wv):
         start=int(input('Give me the node H: '))
         inp=input('Give me a set of nodes (separated by space): ')
         p=list(map(int, inp.split()))
-        distance=input('Give me a distance function:\nt : the time distance;\nd : phisical distnce;\nn : netword distance.\n')
+        distance=input('Give me a distance function:\ntime : the time distance;\nphysical : phisical distnce;\nnetwork : network distance.\n')
         
-        if distance not in ['t', 'd', 'n']:
+        if distance not in ['network', 'time', 'physical']:
             print('Wrong inputs\nPlease reinsert\n')
         else:
             ok=True
-    
-    print(start, '\n', p, '\n', distance)
-    
-    g=dict()
-    print('graph created')
-    u.add_nodes(g, list(range(1, h.NUM_VERTEX+1)))
-    #u.add_nodes(g, list(range(1, 18)))
-    #print('1', g)
-    #g={1:{}, 2:{1:1}, 19:{4:1, 15:1, 13:1}, 3:{2:1, 6:1, 13:1, 4:1, 1:1}, 4:{14:1, 15:1}, 5:{4:1, 6:1}, 6:{3:1}, 7:{6:1, 13:1, 10:1}, 8:{7:1, 11:1}, 9:{5:1, 2:1, 7:1}, 10:{13:1}, 11:{14:1}, 12:{13:1, 4:1, 8:1}, 14:{9:1}, 13:{}, 15:{14:1, 13:1}, 16:{17:1}, 17:{18:1}, 18:{16:1}}
-    #print('2', g)
-    
-    print('node added')
-    if distance=='d':
-        u.add_phisical_distance_edges(g)
-    elif distance=='t':
-        u.add_time_distance_edges(g)
-    else:
-        u.add_network_distance_edges(g)
-    print('edges added')
-    
 
-    # i want create a clique with the all node given in input to save all distances between a pair of node
-    
+    print(start, '\n', p, '\n', distance)
+
+
     paths={}#this save the paths betwenn the pair
 
     #the clique
     nodes=[start]+p # nodes of the clique 
-    clique={}
-    u.add_nodes(clique, list(set(nodes))) #add the nodes to the clique
+    clique={node:dict() for node in nodes}
+
     for source in nodes: #iterate over the nodes to perform a clique
         for dest in nodes:
             if source!=dest: #if the pair of nodes are not the same node
                 adj=clique[source]#obtain the enpty dictionary associated to che source
                 print('dijkstraaaa')
-                djkComps=myDijkstra(g, source, dest)#calculate the distance
-                adj[dest]=djkComps[3]#add the neighbour with the weight
-                paths[(source, dest)]=djkComps[2]#take the path
+                #djkComps=myDijkstra(g, source, dest)#calculate the distance
+                djkComps=dijkstra(G, source, dest, distance)
+
+                adj[dest]=djkComps[1]#add the neighbour with the weight
+                paths[(source, dest)]=djkComps[0]#take the path
             else:
-                adj=clique[source]
+                adj=clique.get(source)
                 adj[source]=0
                 paths[(source, dest)]=[]
-    
+
     #this problem is np-hard; therin't a linear solution; we will adopt ad euristic solution called "the nearest neighbour"
     #at each step we chose the nearest as next point to visit
 
@@ -256,11 +199,11 @@ def functionality_4(nv, wv):
         path=paths[(st, node)]
         shortRoute+=path[1:] if path!=float('inf') else [path]#concatenate taking only the elements from second to the end
         st=node
-    print(shortRoute)
+    #print(shortRoute)
     if float('inf') in shortRoute:
         print('Not possibile')
         return
-    print('ok s r', shortRoute)
+    print('ok s r', shortRoute, 'len', len(shortRoute))
 
     #create the graph of the short route
     gf4=dict()
@@ -268,19 +211,26 @@ def functionality_4(nv, wv):
     for node in shortRoute[1:]:
         adj=gf4.get(current)
         if adj==None:
-            gf4[current]={node: g[current][node]}
+            gf4[current]={node: G[current][node]}
         else:
-            adj[node]=g[current][node]
+            if distance=='time':
+                adj[node]=G[current][node]['Time_distance']
+            elif distance=='physical':
+                adj[node]=G[current][node]['Physical_distance']
+            else:
+                adj[node]=1
         current=node
+    gf4[p[len(p)-1]]=dict()
 
-    print('gf4: ', gf4)
+    #print('gf4: ', gf4)
 
     # call the visualizzation function 4
     
-    visualize(gf4, nv, wv)  
+    visualize(gf4, True, False) 
+    pos=getPositions(shortRoute)
+    #print('pos: ', pos)
+    visualize2(pos, start) 
+
 
 if __name__=='__main__':
-    node_visualize=True if sys.argv[1]=='t' else False
-    weight_visualize=True if sys.argv[2]=='t' else False
-    print(sys.argv)
-    functionality_4(node_visualize, weight_visualize)
+    functionality_4()
