@@ -10,13 +10,13 @@ Specifically, the implementation of the system consisted of two parts.
 * Backend: where you need to develop efficient algorithms that define the functionalities of the system
 * Frontend: where you provide visualization for queries entered by the user
 
-__`Usage instructions (should you want to execute our notebook):`__
+__`Usage instructions (should you want to execute our script):`__
 
-	To run our code it is necessary to download the three datasets and save them in a folder named 'Files', then everything will be automatically executed.
+	To run our code it is necessary to download the three datasets and store them in a folder named 'Files', then everything will be automatically processed.
  
-The repository includes the following files:
+This repository includes the following stuff:
 1. __`main.py`__: 
-     > A main file by which you can run all the functionalities by picking the one you want.
+     > A main file by which you can run functionalities by picking the one you want.
       
 2. __`func_1.py`__:
       > A Python file gathering the functions used to complete the first task. 
