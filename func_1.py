@@ -1,17 +1,23 @@
 import pandas as pd, networkx as nx
 import matplotlib.pyplot
 import folium
+import os
+import webbrowser
+
 # Loading files as a panda data frame
-nodeInfo = pd.read_csv('nodeInfo.co', skiprows = 7, sep = " ", delimiter = " ",
-                         names = ["Character", "ID_Node", "Longitude", "Latitude"])
+
+files_names = os.listdir('./Files')
+        
+nodeInfo = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[0], skiprows = 7, sep = " ", delimiter = " ",
+                       names = ["Character", "ID_Node", "Longitude", "Latitude"])
 nodeInfo.drop(columns = ["Character"], inplace = True)
 
-physical_dist = pd.read_csv('distance.gr', skiprows = 7, sep = " ", delimiter = " ",
-                         names = ["Character", "Node_1", "Node_2", "Physical_distance"])
+physical_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[1], skiprows = 7, sep = " ", delimiter = " ",
+                            names = ["Character", "Node_1", "Node_2", "Physical_distance"])
 physical_dist.drop(columns = ["Character"], inplace = True)
 
-time_dist = pd.read_csv('time.gr', skiprows = 7, sep = " ", delimiter = " ",
-                         names = ["Character", "Node_1", "Node_2", "Time_distance"])
+time_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[2], skiprows = 7, sep = " ", delimiter = " ",
+                        names = ["Character", "Node_1", "Node_2", "Time_distance"])
 time_dist.drop(columns = ["Character"], inplace = True)
 
 nodes = list(nodeInfo['ID_Node']) # list of all nodes
@@ -50,7 +56,8 @@ def visualize(pos, start):
         locations.append((pos[node][1]/1000000, pos[node][0]/1000000))
     folium.PolyLine(locations).add_to(m)
     #display(m)
-    m.save('index.html')
+    m.save('Func_1.html')
+    webbrowser.open("Func_1.html", new = 2)
 
 
 def func_1():
@@ -128,4 +135,6 @@ def func_1():
             return visualize(pos,start)
 
 
-func_1()
+if __name__=='__main__':
+    func_1()
+

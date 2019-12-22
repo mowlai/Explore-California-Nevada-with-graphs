@@ -2,8 +2,10 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import header as h
 import pandas as pd
-from dijkstra import dijkstra
 import folium
+import os
+import webbrowser
+from func_3 import dijkstra
 
 def myNearestNeighbour(clique, s, e, nodes):
     '''
@@ -66,13 +68,14 @@ def visualize2(pos, start):
     folium.PolyLine(locations).add_to(m)
     #display(m)
     m.save('index.html')
+    webbrowser.open("index.html", new = 2)
+    
 
 
 def visualize(gf4, nv, wv):
     
     pos=getPositions(list(gf4.keys()))
 
-    
 
     gg=nx.DiGraph(gf4)
     fig=plt.figure()
@@ -113,23 +116,28 @@ def printNodes():
     nodes=pd.read_csv(h.PATH_INFO, sep=' ', names=['a', 'node', 'lat', 'lon'], delimiter=None, index_col=None, usecols=None)
     nodes.plot(kind='scatter', x='lon', y='lat')
 
+
+
 def functionality_4():
+
+    files_names = os.listdir('./Files')
+    
     dataframes_names = ['coordinates', 'physical_dist', 'time_dist']
 
 
-    globals()[dataframes_names[0]] = pd.read_csv(h.PATH_INFO, skiprows = 7, sep = " ", 
+    globals()[dataframes_names[0]] = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[0], skiprows = 7, sep = " ", 
                                             delimiter = " ", names = ["Character", "ID_Node", "Longitude", "Latitude"],
                                             index_col = None, usecols = None, encoding = 'ISO-8859-1')
 
     eval(dataframes_names[0]).drop(columns = ["Character"], inplace = True)
 
-    globals()[dataframes_names[1]] = pd.read_csv(h.PATH_DISTANCE, skiprows = 7, sep = " ", 
+    globals()[dataframes_names[1]] = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[1], skiprows = 7, sep = " ", 
                                             delimiter = " ", names = ["Character", "Node_1", "Node_2", "Physical_distance"],
                                             index_col = None, usecols = None, encoding = 'ISO-8859-1')
 
     eval(dataframes_names[1]).drop(columns = ["Character"], inplace = True)
 
-    globals()[dataframes_names[2]] = pd.read_csv(h.PATH_TIME, skiprows = 7, sep = " ", 
+    globals()[dataframes_names[2]] = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[2], skiprows = 7, sep = " ", 
                                             delimiter = " ", names = ["Character", "Node_1", "Node_2", "Time_distance"],
                                             index_col = None, usecols = None, encoding = 'ISO-8859-1')
     eval(dataframes_names[2]).drop(columns = ["Character"], inplace = True)
@@ -179,10 +187,11 @@ def functionality_4():
                 adj[source]=0
                 paths[(source, dest)]=[]
 
-    #this problem is np-hard; therin't a linear solution; we will adopt ad euristic solution called "the nearest neighbour"
-    #at each step we chose the nearest as next point to visit
+    # We are facing an NP-hard problem, that means there isn't a linear solution. In order to solve it we will adopt an euristic solution known as
+    # "the nearest neighbour". This method, at each step, chooses the nearest node as next point to visit.
 
     bigRoute=myNearestNeighbour(clique, start, p[len(p)-1], nodes) #compute the route over the set in input
+
     print('big r', bigRoute)
 
     #check if it's possibile find a route over all nodes in input
@@ -194,7 +203,7 @@ def functionality_4():
     shortRoute=[start]
     st=start
     #print(paths)
-    for node in bigRoute[1:]:#iteate over the big route to concatenate the path among two node in the gid route
+    for node in bigRoute[1:]:# Iterate over the big route to concatenate the path among two nodes in the gid route
         #print(paths[(st, node)])
         path=paths[(st, node)]
         shortRoute+=path[1:] if path!=float('inf') else [path]#concatenate taking only the elements from second to the end

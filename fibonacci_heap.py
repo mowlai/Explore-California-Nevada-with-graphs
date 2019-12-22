@@ -305,6 +305,8 @@ class Fibonacci_heap(object):
         # Cached size of the heap, so we don't have to recompute this explicitly.
         self.m_size = 0
 
+        # While brainstorming with my beloved former teammate, Silviu Spac, we found this library and decided
+        # to add this dictionary to make it suit our needs.
         self.nodes = {}
 
     def enqueue(self, value, priority):
