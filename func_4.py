@@ -67,8 +67,8 @@ def visualize2(pos, start):
         locations.append((pos[node][1]/1000000, pos[node][0]/1000000))
     folium.PolyLine(locations).add_to(m)
     #display(m)
-    m.save('index.html')
-    webbrowser.open("index.html", new = 2)
+    m.save('Plot_func_4.html')
+    webbrowser.open("Plot_func_4.html", new = 2)
     
 
 

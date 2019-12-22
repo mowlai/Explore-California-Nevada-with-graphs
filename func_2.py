@@ -4,127 +4,108 @@ import matplotlib.pyplot as plt
 import utils as u
 import itertools as it
 import header as h
+import pandas as pd
+from func_3 import dijkstra
+import folium
+import webbrowser
 
-def myDijkstra(g, source, dest):
+def getPositions(nodes):
     '''
-    Implementation of the Dijkstra algo for the shortest path in a graph
-    inputs: 
-        g: the graph in the form (dict): {n : { adjOfn : weight_n_to_adjOfn } }
-        source: the source node
-        dest: the destination node
+    Returns the dictionary of the position for each nodes; needs to visualizations task
     outputs:
-        pred: the father's vector
-        d: the distance list
-        pathRevers: the dijkstra path
-        d[dest]: the weight of the path
+        pos: dictionary of the positions
     '''
-    nodi=[0]+list(g.keys())#obtain the nodes in the graph
-    l=[source]#list of node we need to visit, start from the source
-    s=[]#list of nodes visited
-    d=[float('inf') for i in nodi]#the inizial (unknown) distanse set to infinity
-    d[source]=0#distance of the sourse from itself
-    pred=nodi.copy()#list of fathers
+    pos=dict()
+    for node in nodes:
+        pos[node]=[coordinates["Longitude"][node-1], coordinates["Latitude"][node-1]]
+    #print(pos)
+    return pos
+
+def visualize(nodes):
+
+    pos=getPositions(nodes)
+    print('pos\n', pos)
     
+    m = folium.Map(location = (pos[nodes[0]][1]/1000000, 
+                           pos[nodes[0]][0]/1000000), zoom_start = 13, tiles = 'openstreetmap')    
+    locations=[]
+    for node in nodes:
+        locations.append((pos[node][1]/1000000, pos[node][0]/1000000))
+    
+    folium.PolyLine(locations).add_to(m)
+    #display(m)
+    m.save('plot_func_2.html')
+    webbrowser.open("plot_func_2.html", new = 2)
 
-    while l!=[]:#till we haven't visited all nodes
 
-        #loking for the el in l with minumun distance in d
-        minDist=d[l[0]]
-        i=l[0]
-        for el in l[1:]:
-            if d[el]<minDist:
-                minDist=d[el]
-                i=el
-        #we have found the node with minimum distance 
-        current=i#visiting...
-        l.remove(i)#...
-        s.append(current)#...
-        adj=g[current]#adjacent
-        for neighbour in adj:
-            cumul=d[current]+g[current][neighbour]#calculate the cumulative distance
-            if cumul<d[neighbour]:
-                d[neighbour]=cumul#update the minimum distance for the neigbour from the current
-                pred[neighbour]=current #update the father of the current
-                if neighbour not in l:
-                    l.append(neighbour)#we need to visit it
+def functionality_2():
+    dataframes_names = ['coordinates', 'physical_dist', 'time_dist']
 
-    # We had created the father's vector and the permanent distance vector
-    if d[dest]==float('inf'):#if there isn't a path from the source to the destination
-        print('Ther isn\'t a path from {} to {}'.format(source, dest))
-        return pred, d, float('inf'), float('inf')
-    else:
-        #reation of the reverse path from the destination to the source based on the father's vector
-        pathRevers=[dest]
-        father=pred[dest]
-        while father!=source:#since finde the source
-            pathRevers.append(father)
-            father=pred[father]
-        pathRevers.append(source)#add the source
-        pathRevers.reverse()#and reverse the list to obtain the path from the source to the destination
 
-        return pred, d, pathRevers, d[dest]
+    globals()[dataframes_names[0]] = pd.read_csv(h.PATH_INFO, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "ID_Node", "Longitude", "Latitude"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
 
-def f2():
+    eval(dataframes_names[0]).drop(columns = ["Character"], inplace = True)
+
+    globals()[dataframes_names[1]] = pd.read_csv(h.PATH_DISTANCE, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "Node_1", "Node_2", "Physical_distance"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
+
+    eval(dataframes_names[1]).drop(columns = ["Character"], inplace = True)
+
+    globals()[dataframes_names[2]] = pd.read_csv(h.PATH_TIME, skiprows = 7, sep = " ", 
+                                            delimiter = " ", names = ["Character", "Node_1", "Node_2", "Time_distance"],
+                                            index_col = None, usecols = None, encoding = 'ISO-8859-1')
+    eval(dataframes_names[2]).drop(columns = ["Character"], inplace = True)
+
+    #print(globals())
+    #physical_dist=globals()['physical_dist']
+    #time_dist=globals()['time_dist']
+    #coordinates=globals()['coordinates']
+    complete = pd.merge(physical_dist, time_dist, on = ['Node_1', 'Node_2'])
+
+    G = nx.from_pandas_edgelist(complete, 'Node_1', 'Node_2', ['Physical_distance', 'Time_distance'], create_using = nx.DiGraph())
 
     #imputs
     ok=False
     while not ok:
         inp=input('Give me a set of nodes (separated by space): ')
         nodes=list(map(int, inp.split()))
-        distance=input('Give me a distance function:\nt : the time distance;\nd : phisical distnce;\nn : netword distance.\n')
+        distance=input('Give me a distance function:\ntime : the time distance;\nphysical : phisical distnce;\nnetwork : netword distance.\n')
         
-        if distance not in ['t', 'd', 'n']:
+        if distance not in ['time', 'physical', 'network']:
             print('Wrong inputs\nPlease reinsert\n')
         else:
             ok=True
     
     print(nodes, '\n', distance)
     
-    g=dict()
-    print('graph created')
 
 
     
-    #g={1:{}, 2:{1:1}, 19:{4:1, 15:1, 13:1}, 3:{2:1, 6:1, 13:1, 4:1, 1:1}, 4:{14:1, 15:1}, 5:{4:1, 6:1}, 6:{3:1}, 7:{6:1, 13:1, 10:1}, 8:{7:1, 11:1}, 9:{5:1, 2:1, 7:1}, 10:{13:1}, 11:{14:1}, 12:{13:1, 4:1, 8:1}, 14:{9:1}, 13:{}, 15:{14:1, 13:1}, 16:{17:1}, 17:{18:1}, 18:{16:1}}
-    
-    
-    print('node added')
-    
-    if distance=='d':
-        u.add_phisical_distance_edges(g)
-    elif distance=='t':
-        u.add_time_distance_edges(g)
-    else:
-        u.add_network_distance_edges(g)
-    print('edges added')
-
-     #to visulize the graph
-     '''
-    gg=nx.DiGraph(g)
-    nx.draw(gg, with_labels=True)
-    plt.show()
-    '''
-    
-    inf=float('inf')
     paths={}#this save the paths betwenn the pair
 
     #the clique
-    clique={}
-    u.add_nodes(clique, nodes) #add the nodes to the clique
+    clique={node:dict() for node in nodes}
+
     for source in nodes: #iterate over the nodes to perform a clique
         for dest in nodes:
             if source!=dest: #if the pair of nodes are not the same node
                 adj=clique[source]#obtain the enpty dictionary associated to che source
                 print('dijkstraaaa')
-                djkComps=myDijkstra(g, source, dest)#calculate the distance
-                adj[dest]=djkComps[3]#add the neighbour with the weight
-                paths[(source, dest)]=djkComps[2]#take the path
+                #djkComps=myDijkstra(g, source, dest)#calculate the distance
+                djkComps=dijkstra(G, source, dest, distance)
+
+                adj[dest]=djkComps[1]#add the neighbour with the weight
+                paths[(source, dest)]=djkComps[0]#take the path
             else:
-                adj=clique[source]
+                adj=clique.get(source)
                 adj[source]=0
                 paths[(source, dest)]=[]
-
+                
     # with ermutations
+    inf=float('inf')
     minDist=inf
     minPerm=None
     perms=list(it.permutations(nodes))
@@ -148,12 +129,34 @@ def f2():
 
     print(bigRoute)
 
+    '''
+    finalNodes=[]
     completeRoute=[]
-    for n in bigRoute:
-        completeRoute+=paths[n]
+    for link in bigRoute:
+        longPath=paths[link]#obtain the path that represent the the link between the two nodes
+        edges=[]
+        current=longPath[0]
+        finalNodes.append(current)
+        for node in longPath[1:]:
+            edges.append((current, node))
+            current=node
+            finalNodes.append(current)
 
-    print(completeRoute)
+        completeRoute+=edges
+    finalEdges=list(set(completeRoute))
+    print('edges\n', finalEdges, '\nnodes\n', finalNodes)
+    '''
 
+    finalNodes=[]
+    for link in bigRoute:
+        longPath=paths[link]#obtain the path that represent the the link between the two nodes
+        for node in longPath:
+            finalNodes.append(node)
 
-f2()
+    #finalNodes=set(finalNodes)
+    print('nodesSet\n', finalNodes)
+
+    visualize(list(finalNodes))
+    
+
 

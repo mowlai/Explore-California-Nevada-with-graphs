@@ -4,28 +4,6 @@ import folium
 import os
 import webbrowser
 
-# Loading files as a panda data frame
-
-files_names = os.listdir('./Files')
-        
-nodeInfo = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[0], skiprows = 7, sep = " ", delimiter = " ",
-                       names = ["Character", "ID_Node", "Longitude", "Latitude"])
-nodeInfo.drop(columns = ["Character"], inplace = True)
-
-physical_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[1], skiprows = 7, sep = " ", delimiter = " ",
-                            names = ["Character", "Node_1", "Node_2", "Physical_distance"])
-physical_dist.drop(columns = ["Character"], inplace = True)
-
-time_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[2], skiprows = 7, sep = " ", delimiter = " ",
-                        names = ["Character", "Node_1", "Node_2", "Time_distance"])
-time_dist.drop(columns = ["Character"], inplace = True)
-
-nodes = list(nodeInfo['ID_Node']) # list of all nodes
-#merging
-merged = pd.merge(physical_dist, time_dist, on = ['Node_1', 'Node_2'])
-
-# making graph from the pandas dataframe 
-G = nx.from_pandas_edgelist(merged, 'Node_1', 'Node_2', ['Physical_distance',"Time_distance"], create_using = nx.DiGraph())
 
 # this function returns a dic of node's coordinates
 def getpos(nodes):
@@ -61,6 +39,29 @@ def visualize(pos, start):
 
 
 def func_1():
+    # Loading files as a panda data frame
+
+    files_names = os.listdir('./Files')
+            
+    nodeInfo = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[0], skiprows = 7, sep = " ", delimiter = " ",
+                        names = ["Character", "ID_Node", "Longitude", "Latitude"])
+    nodeInfo.drop(columns = ["Character"], inplace = True)
+
+    physical_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[1], skiprows = 7, sep = " ", delimiter = " ",
+                                names = ["Character", "Node_1", "Node_2", "Physical_distance"])
+    physical_dist.drop(columns = ["Character"], inplace = True)
+
+    time_dist = pd.read_csv(os.getcwd() + '\\Files\\' + files_names[2], skiprows = 7, sep = " ", delimiter = " ",
+                            names = ["Character", "Node_1", "Node_2", "Time_distance"])
+    time_dist.drop(columns = ["Character"], inplace = True)
+
+    nodes = list(nodeInfo['ID_Node']) # list of all nodes
+    #merging
+    merged = pd.merge(physical_dist, time_dist, on = ['Node_1', 'Node_2'])
+
+    # making graph from the pandas dataframe 
+    G = nx.from_pandas_edgelist(merged, 'Node_1', 'Node_2', ['Physical_distance',"Time_distance"], create_using = nx.DiGraph())
+
     v = int(input('Enter a node: '))  # the initial node
     typeofdist = int(input('Enter the type of distance threshold(enter one of these numbers):\n 1.Time \n 2.Physical distance \n 3.Network distance\n'))    
     d = int(input('Enter the distance amount: '))  #the distance threshold
@@ -133,8 +134,4 @@ def func_1():
             pos = getpos(visited)
             print("\nAll the neighbors you can go from,",start,", within the entered network distance:\n",visited,'\n')
             return visualize(pos,start)
-
-
-if __name__=='__main__':
-    func_1()
 

@@ -2,6 +2,7 @@ import sys
 import time
 import func_1 as f1
 import func_3 as f3
+import func_2 as f2
 import func_4 as f4
 
 def func_1():
@@ -10,8 +11,8 @@ def func_1():
     f1.func_1()
     
 
-#def func_2():
-
+def func_2():
+    f2.functionality_2()
     
     
 def func_3():
@@ -32,12 +33,21 @@ def func_4():
 
 if __name__== '__main__':
 
-    func = input('Choose the functionality(1, 2, 3 or 4): ')
+    ok=False
+    while not ok:
 
-    if func == '1':
-        func_1()
-    if func == '3':
-        func_3()
-    if func == '4':
-        func_4()
+        func = input('Choose the functionality(1, 2, 3 or 4)\nor e to exit the program: ')
+
+        if func == '1':
+            func_1()
+        elif func == '2':
+            func_2()
+        elif func == '3':
+            func_3()
+        elif func == '4':
+            func_4()
+        elif func == 'e':
+            ok=True
+        else:
+            print('I\'m sorry... your choice is wrong\nPlease retry or type \'e\'')
     
