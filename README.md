@@ -7,8 +7,8 @@
 In this homework, we built a system providing users with information about roads in California and Nevada.
 Specifically, the implementation of the system consisted of two parts.
 
-* Backend: where you need to develop efficient algorithms that define the functionalities of the system
-* Frontend: where you provide visualization for queries entered by the user
+* Backend: where we developed efficient algorithms that define the functionalities of the system
+* Frontend: where we provided visualization for queries entered by the user
 
 __`Usage instructions (should you want to execute our script):`__
 
