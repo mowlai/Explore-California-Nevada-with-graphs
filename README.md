@@ -1,4 +1,4 @@
-# Homework 5 - Explore California and Nevada with graphs
+# Explore California and Nevada with graphs
 
 <p align="center">
 <img src="https://siviaggia.files.wordpress.com/2018/12/California-nevada.jpg?w=679&strip=all&quality=90&zoom=2">
